@@ -1,4 +1,4 @@
-// Bakeoff #2 - Seleção de Alvos e Fatores Humanos
+// Bakeoff #2 - Seleção de Alvos e Fatores Humanos //<>// //<>//
 // IPM 2019-20, Semestre 2
 // Bake-off: durante a aula de lab da semana de 20 de Abril
 // Submissão via Twitter: exclusivamente no dia 24 de Abril, até às 23h59
@@ -8,11 +8,10 @@
 import java.util.Collections;
 
 // Target properties
-final float PPI            = 227;            // http://dpi.lv/ (Macbook Pro 13 Retina: 227) - CHANGE TO YOUR DISPLAY PPI!
-final float PPCM           = PPI / 2.54;     // do not change this!
-final float TARGET_SIZE    = 1.5 * PPCM;     // set the target size in cm; do not change this!
-final float TARGET_PADDING   = 0.1 * PPCM;   // set the padding around the targets in cm; do not change this!
-final float MARGIN           = 1.5 * PPCM;   // set the margin around the targets in cm; do not change this!
+float PPI, PPCM;
+float SCALE_FACTOR;
+float TARGET_SIZE;
+float TARGET_PADDING, MARGIN, LEFT_PADDING, TOP_PADDING;
 
 // Study properties
 ArrayList<Integer> trials  = new ArrayList<Integer>();    // contains the order of targets that activate in the test
@@ -31,7 +30,7 @@ class Target
 {
   int x, y;
   float w;
-  
+
   Target(int posx, int posy, float twidth) 
   {
     x = posx;
@@ -43,10 +42,22 @@ class Target
 // Setup window and vars - runs once
 void setup()
 {
-  size(700, 700);    // window size in px
+  //size(900, 900);              // window size in px (use for debugging)
+  fullScreen();                // USE THIS DURING THE BAKEOFF!
+  
+  SCALE_FACTOR    = 1.0 / displayDensity();            // scale factor for high-density displays
+  String[] ppi_string = loadStrings("ppi.txt");        // The text from the file is loaded into an array.
+  PPI            = float(ppi_string[1]);               // set PPI, we assume the ppi value is in the second line of the .txt
+  PPCM           = PPI / 2.54 * SCALE_FACTOR;          // do not change this!
+  TARGET_SIZE    = 1.5 * PPCM;                         // set the target size in cm; do not change this!
+  TARGET_PADDING = 1.5 * PPCM;                         // set the padding around the targets in cm; do not change this!
+  MARGIN         = 1.5 * PPCM;                         // set the margin around the targets in cm; do not change this!
+  LEFT_PADDING   = width/2 - TARGET_SIZE - 1.5*TARGET_PADDING - 1.5*MARGIN;        // set the margin of the grid of targets to the left of the canvas; do not change this!
+  TOP_PADDING    = height/2 - TARGET_SIZE - 1.5*TARGET_PADDING - 1.5*MARGIN;       // set the margin of the grid of targets to the top of the canvas; do not change this!
+  
   noStroke();        // draw shapes without outlines
   frameRate(60);     // set frame rate
-  
+
   // Text and font setup
   textFont(createFont("Arial", 16));    // sets the font to Arial size 16
   textAlign(CENTER);                    // align text
@@ -57,10 +68,8 @@ void setup()
 // Updates UI - this method is constantly being called and drawing targets
 void draw()
 {
- 
-  if(hasEnded()) 
-    return;            // nothing else to do; study is over
-    
+  if (hasEnded()) return; // nothing else to do; study is over
+
   background(0);       // set background to black
 
   // Print trial count
@@ -72,18 +81,18 @@ void draw()
 }
 
 boolean hasEnded() {
-   if(ended) return true;    // returns if test has ended before
-   
-   // Check if the study is over
+  if (ended) return true;    // returns if test has ended before
+
+  // Check if the study is over
   if (trialNum >= trials.size())
   {
     float timeTaken = (finishTime-startTime) / 1000f;     // convert to seconds - DO NOT CHANGE!
-    float penalty = constrain(((95f-((float)hits*100f/(float)(hits+misses)))*.2f),0,100);    // calculate penalty - DO NOT CHANGE!
-    
+    float penalty = constrain(((95f-((float)hits*100f/(float)(hits+misses)))*.2f), 0, 100);    // calculate penalty - DO NOT CHANGE!
+
     printResults(timeTaken, penalty);    // prints study results on-screen
     ended = true;
   }
-  
+
   return ended;
 }
 
@@ -95,7 +104,7 @@ void randomizeTrials()
     for (int k = 0; k < NUM_REPEATS; k++)  // each target will repeat 'NUM_REPEATS' times
       trials.add(i);
   Collections.shuffle(trials);             // randomize the trial order
-  
+
   System.out.println("trial order: " + trials);    // prints trial order - for debug purposes
 }
 
@@ -103,24 +112,22 @@ void randomizeTrials()
 void printResults(float timeTaken, float penalty)
 {
   background(0);       // clears screen
-  
+
   fill(255);    //set text fill color to white
-  text(day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second() , 100, 20);   // display time on screen
-  
+  text(day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second(), 100, 20);   // display time on screen
+
   text("Finished!", width / 2, height / 2); 
   text("Hits: " + hits, width / 2, height / 2 + 20);
   text("Misses: " + misses, width / 2, height / 2 + 40);
   text("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%", width / 2, height / 2 + 60);
   text("Total time taken: " + timeTaken + " sec", width / 2, height / 2 + 80);
-  text("Average time for each target: " + nf((timeTaken)/(float)(hits+misses),0,3) + " sec", width / 2, height / 2 + 100);
-  text("Average time for each target + penalty: " + nf(((timeTaken)/(float)(hits+misses) + penalty),0,3) + " sec", width / 2, height / 2 + 140);
-  text("Fitts Index of Performance", width / 2, height / 2);
- 
-  
+  text("Average time for each target: " + nf((timeTaken)/(float)(hits+misses), 0, 3) + " sec", width / 2, height / 2 + 100);
+  text("Average time for each target + penalty: " + nf(((timeTaken)/(float)(hits+misses) + penalty), 0, 3) + " sec", width / 2, height / 2 + 140);
+
   saveFrame("results-######.png");    // saves screenshot in current folder
 }
 
-// Mouse button was release - lets test to see if hit was in the correct target
+// Mouse button was released - lets test to see if hit was in the correct target
 void mouseReleased() 
 {
   if (trialNum >= trials.size()) return;      // if study is over, just return
@@ -130,16 +137,15 @@ void mouseReleased()
     finishTime = millis();    // save final timestamp
     println("We're done!");
   }
-  
+
   Target target = getTargetBounds(trials.get(trialNum));    // get the location and size for the target in the current trial
-  
+
   // Check to see if mouse cursor is inside the target bounds
-  if(dist(target.x, target.y, mouseX, mouseY) < target.w/2)
+  if (dist(target.x, target.y, mouseX, mouseY) < target.w/2)
   {
     System.out.println("HIT! " + trialNum + " " + (millis() - startTime));     // success - hit!
-    hits++; // increases hits counter 
-  }
-  else
+    hits++; // increases hits counter
+  } else
   {
     System.out.println("MISSED! " + trialNum + " " + (millis() - startTime));  // fail
     misses++;   // increases misses counter
@@ -151,10 +157,10 @@ void mouseReleased()
 // For a given target ID, returns its location and size
 Target getTargetBounds(int i)
 {
-  int x = (int)((i % 4) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
-  int y = (int)((i / 4) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
-  
-  return new Target(x, y, TARGET_SIZE/2);
+  int x = (int)LEFT_PADDING + (int)((i % 4) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
+  int y = (int)TOP_PADDING + (int)((i / 4) * (TARGET_SIZE + TARGET_PADDING) + MARGIN);
+
+  return new Target(x, y, TARGET_SIZE);
 }
 
 // Draw target on-screen
@@ -162,18 +168,18 @@ Target getTargetBounds(int i)
 void drawTarget(int i)
 {
   Target target = getTargetBounds(i);   // get the location and size for the circle with ID:i
-  
+
   // check whether current circle is the intended target
   if (trials.get(trialNum) == i) 
   { 
     // if so ...
-    stroke((220));     // stroke light gray
-    strokeWeight(2);   // stroke weight 2 
+    stroke(220);       // stroke light gray
+    strokeWeight(2);   // stroke weight 2
   }
 
-  fill(#FFFFFF);           // fill dark gray 155
-  
+  fill(155);           // fill dark gray
+  alpha(100);
   circle(target.x, target.y, target.w);   // draw target
-  
+
   noStroke();    // next targets won't have stroke (unless it is the intended target)
 }
