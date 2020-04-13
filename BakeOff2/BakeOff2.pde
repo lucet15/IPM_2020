@@ -15,6 +15,7 @@ float TARGET_PADDING, MARGIN, LEFT_PADDING, TOP_PADDING;
 
 // Study properties
 ArrayList<Integer> trials  = new ArrayList<Integer>();    // contains the order of targets that activate in the test
+ArrayList<Float> performance = new ArrayList<Float>();
 int trialNum               = 0;                           // the current trial number (indexes into trials array above)
 final int NUM_REPEATS      = 3;                           // sets the number of times each target repeats in the test - FOR THE BAKEOFF NEEDS TO BE 3!
 boolean ended              = false;
@@ -38,6 +39,7 @@ class Target
     w = twidth;
   }
 }
+
 
 // Setup window and vars - runs once
 void setup()
@@ -77,7 +79,10 @@ void draw()
   text("Trial " + (trialNum + 1) + " of " + trials.size(), 50, 20);    // display what trial the participant is on (the top-left corner)
 
   // Draw targets
-  for (int i = 0; i < 16; i++) drawTarget(i);
+  for (int i = 0; i < 16; i++) {
+    
+    drawTarget(i);
+  }
 }
 
 boolean hasEnded() {
@@ -116,13 +121,25 @@ void printResults(float timeTaken, float penalty)
   fill(255);    //set text fill color to white
   text(day() + "/" + month() + "/" + year() + "  " + hour() + ":" + minute() + ":" + second(), 100, 20);   // display time on screen
 
-  text("Finished!", width / 2, height / 2); 
-  text("Hits: " + hits, width / 2, height / 2 + 20);
-  text("Misses: " + misses, width / 2, height / 2 + 40);
-  text("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%", width / 2, height / 2 + 60);
-  text("Total time taken: " + timeTaken + " sec", width / 2, height / 2 + 80);
-  text("Average time for each target: " + nf((timeTaken)/(float)(hits+misses), 0, 3) + " sec", width / 2, height / 2 + 100);
-  text("Average time for each target + penalty: " + nf(((timeTaken)/(float)(hits+misses) + penalty), 0, 3) + " sec", width / 2, height / 2 + 140);
+  text("Finished!", width / 2, 40); 
+  text("Hits: " + hits, width / 2, 60);
+  text("Misses: " + misses, width / 2, 80);
+  text("Accuracy: " + (float)hits*100f/(float)(hits+misses) +"%", width / 2, 100);
+  text("Total time taken: " + timeTaken + " sec", width / 2, 120);
+  text("Average time for each target: " + nf((timeTaken)/(float)(hits+misses), 0, 3) + " sec", width / 2, 140);
+  text("Average time for each target + penalty: " + nf(((timeTaken)/(float)(hits+misses) + penalty), 0, 3) + " sec", width / 2, 180);
+  text("Fitts Index of Performance", width / 2, 220);
+  text("Target 1: ---", width / 2 - 100, 240);  
+  
+  for (int i = 1; i < 24; i++) {
+    if (performance.get(i) == 0.0) text("Target " + (i + 1) + ": " + "MISSED", width / 2 - 100, 240 + 20*i);
+    else text("Target " + (i + 1) + ": " + performance.get(i), width / 2 - 100, 240 + 20*i);
+      
+}
+  for (int i = 1; i < 24; i++) {
+    if (performance.get(i + 24) == 0.0) text("Target " + (i + 24) + ": " + "MISSED", width / 2 + 100, 240 + 20*i);
+    else text("Target " + (i + 24) + ": " + performance.get(i + 24), width / 2 + 100, 240 + 20*i); 
+  }
 
   saveFrame("results-######.png");    // saves screenshot in current folder
 }
@@ -145,11 +162,15 @@ void mouseReleased()
   {
     System.out.println("HIT! " + trialNum + " " + (millis() - startTime));     // success - hit!
     hits++; // increases hits counter
+    float aux = Mackenzie(trialNum);
+    performance.add(aux);
   } else
   {
     System.out.println("MISSED! " + trialNum + " " + (millis() - startTime));  // fail
     misses++;   // increases misses counter
+    performance.add(0.0);
   }
+  
 
   trialNum++;   // move on to the next trial; UI will be updated on the next draw() cycle
 }  
@@ -173,6 +194,38 @@ void drawTarget(int i)
   if (trials.get(trialNum) == i) 
   { 
     // if so ...
+    fill(#3232ff);       // fill orange
+
+  }
+  // check whether current circle is the next target
+  else if (trialNum < 47 && trials.get(trialNum+1) == i) 
+  { 
+    // if so ...
+    //stroke(220, 130, 20);       // stroke orange
+    //strokeWeight(4);   // stroke weight 7
+    fill(#adadff);
+  }
+  else
+    fill(155);           // fill dark gray
+  alpha(100);
+  circle(target.x, target.y, target.w);   // draw target
+
+  noStroke();    // next targets won't have stroke (unless it is the intended target)
+}
+
+
+
+/*
+// Draw target on-screen
+// This method is called in every draw cycle; you can update the target's UI here
+void drawTarget(int i)
+{
+  Target target = getTargetBounds(i);   // get the location and size for the circle with ID:i
+
+  // check whether current circle is the intended target
+  if (trials.get(trialNum) == i) 
+  { 
+    // if so ...
     stroke(220);       // stroke light gray
     strokeWeight(2);   // stroke weight 2
   }
@@ -182,4 +235,25 @@ void drawTarget(int i)
   circle(target.x, target.y, target.w);   // draw target
 
   noStroke();    // next targets won't have stroke (unless it is the intended target)
+}
+*/
+
+
+float Mackenzie(int i) {
+  Target target1 = getTargetBounds(i);
+  Target target2 = getTargetBounds(i - 1);
+  
+  int x1 = target1.x;
+  int y1 = target1.y;
+   
+  int x2 = target2.x;
+  int y2 = target2.y;
+  
+  float distTarget = dist(x1, y1, x2, y2);
+  float TargetSize = 1.5 * PPCM;
+   
+  float res = (log(2) * ((distTarget / (TargetSize + 1))));
+  
+  return res;
+
 }
