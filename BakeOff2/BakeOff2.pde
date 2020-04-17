@@ -194,6 +194,8 @@ void drawTarget(int i)
   if (trials.get(trialNum) == i) 
   { 
     // if so ...
+    stroke(#ffffff);
+    strokeWeight(10);
     fill(#3232ff);       // fill orange
 
   }
