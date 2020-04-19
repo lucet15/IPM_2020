@@ -195,7 +195,7 @@ void drawTarget(int i)
   { 
     // if so ...
     stroke(#ffffff);
-    strokeWeight(10);
+    strokeWeight(10);        
     fill(#3232ff);       // fill orange
 
   }
