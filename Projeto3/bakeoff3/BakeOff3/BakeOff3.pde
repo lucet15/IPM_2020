@@ -42,10 +42,13 @@ PImage background;
 
 // Study properties
 String[] phrases;                   // contains all the phrases that can be tested
+String[] suggestions;               // contains all the predicted words
 int NUM_REPEATS            = 2;     // the total number of phrases to be tested
 int currTrialNum           = 0;     // the current trial number (indexes into phrases array above)
 String currentPhrase       = "";    // the current target phrase
 String currentTyped        = "";    // what the user has typed so far
+String currentWord         = "";    // word currently being typed
+String suggestion          = "the";
 char currentLetter         = 'a';
 
 // Performance variables
@@ -99,6 +102,9 @@ void setup()
   //leftArrow = loadImage("left.png");
   //rightArrow = loadImage("right.png");
   
+  //Load common words
+  suggestions = loadStrings("count_1w.txt");
+  
   // Load phrases
   phrases = loadStrings("phrases.txt");                       // load the phrase set into memory
   Collections.shuffle(Arrays.asList(phrases), new Random());  // randomize the order of the phrases with no seed
@@ -111,7 +117,7 @@ void setup()
   
   FINGER_SIZE = (int)(11 * PPCM);
   FINGER_OFFSET = (int)(0.8 * PPCM);
-  ARM_LENGTH = (int)(40 * PPCM);
+  ARM_LENGTH = (int)(19 * PPCM);
   ARM_HEIGHT = (int)(11.2 * PPCM);
   ARROW_SIZE = (int)(2.2 * PPCM);
   KEYBOARD_LENGHT = (int)(4 * PPCM);
@@ -161,6 +167,7 @@ void draw()
     text("Target:    " + currentPhrase, width/2 - 4.0*PPCM, 100);                           // draw the target string
     fill(0);
     text("Entered:  " + currentTyped + "|", width/2 - 4.0*PPCM, 140);                      // draw what the user has entered thus far 
+    //text("Suggest:  " + suggestion, width/2 - 4.0*PPCM, 300);  
     
     // Draw very basic ACCEPT button - do not change this!
     textAlign(CENTER);
@@ -184,17 +191,6 @@ void draw()
     // THIS IS THE ONLY INTERACTIVE AREA (4cm x 4cm); do not change size
     
 
-    
-
-    image(keyboard, 0,0,0,0);
-    image(abc, 0,0,0,0);
-    image(def, 0,0,0,0);
-    image(ghi, 0,0,0,0);
-    image(jkl, 0,0,0,0);
-    image(mno, 0,0,0,0);
-    image(pqrs, 0,0,0,0);
-    image(tuv, 0,0,0,0);
-    image(wxyz, 0,0,0,0);
     image(background, width/2, height/2 + 0.5*PPCM, 4.0*PPCM, 3.0*PPCM);
     
     
@@ -227,6 +223,7 @@ boolean didMouseClick(float x, float y, float w, float h)
 {
   return (mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h);
 }
+
 
 void mousePressed()
 {
@@ -267,6 +264,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
           currentLetter = 'a';
           currentTyped += currentLetter;
+          currentWord += currentLetter;
+          background = keyboard;
       }
       
       // Test click on 'b'
@@ -274,6 +273,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
         currentLetter = 'b';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'c'
@@ -281,6 +282,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
         currentLetter = 'c';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
            
       // Test click on 'def'
@@ -296,6 +299,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == def) {
         currentLetter = 'd';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'e'
@@ -303,6 +308,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == def) {
         currentLetter = 'e';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'f'
@@ -310,6 +317,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == def) {
         currentLetter = 'f';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'ghi'
@@ -325,6 +334,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == ghi) {
         currentLetter = 'g';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'h'
@@ -332,6 +343,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == ghi) {
         currentLetter = 'h';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'i'
@@ -339,6 +352,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == ghi) {
         currentLetter = 'i';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'jkl'
@@ -354,6 +369,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == jkl) {
         currentLetter = 'j';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'k'
@@ -361,6 +378,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == jkl) {
         currentLetter = 'k';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'l'
@@ -368,6 +387,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == jkl) {
         currentLetter = 'l';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       
@@ -384,6 +405,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == mno) {
         currentLetter = 'm';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'n'
@@ -391,6 +414,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == mno) {
         currentLetter = 'n';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'o'
@@ -398,6 +423,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == mno) {
         currentLetter = 'o';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       
@@ -414,6 +441,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == pqrs) {
         currentLetter = 'p';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'q'
@@ -421,6 +450,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == pqrs) {
         currentLetter = 'q';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'r'
@@ -428,6 +459,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == pqrs) {
         currentLetter = 'r';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       } 
       
       // Test click on 's'
@@ -435,6 +468,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == pqrs) {
         currentLetter = 's';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       } 
       
         
@@ -452,6 +487,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == tuv) {
         currentLetter = 't';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'u'
@@ -459,6 +496,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == tuv) {
         currentLetter = 'u';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'v'
@@ -466,6 +505,8 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == tuv) {
         currentLetter = 'v';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }
       
       // Test click on 'wxyz'
@@ -481,6 +522,8 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'w';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
     }
       
       // Test click on 'x'
@@ -488,6 +531,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'x';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       }  
       
       // Test click on 'y'
@@ -495,6 +540,8 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'y';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       } 
       
       // Test click on 'z'
@@ -502,18 +549,23 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'z';
         currentTyped += currentLetter;
+        currentWord += currentLetter;
+        background = keyboard;
       } 
       
       // Test click on 'DELETE'
       
       else if (didMouseClick(width/2 + 1.35*PPCM, height/2 + 1.15*PPCM, DELETE_SPACE_LENGHT, DELETE_SPACE_HEIGHT) && currentTyped.length() > 0){
         currentTyped = currentTyped.substring(0, currentTyped.length() - 1);
+        
+        if(currentWord.length() > 0)currentWord = currentWord.substring(0, currentWord.length() - 1);
       } 
       
       // Test click on 'SPACE'
       
       else if (didMouseClick(width/2 - 1.95*PPCM, height/2 + 1.15*PPCM, DELETE_SPACE_LENGHT, DELETE_SPACE_HEIGHT)) {
-        currentTyped+=" ";
+        currentTyped += " ";
+        currentWord = "";
       }
       
       // Test click on 'RETURN'
@@ -544,6 +596,17 @@ void mousePressed()
     }*/
   }
   else System.out.println("debug: CLICK NOT ACCEPTED");
+  
+  //Predict next word
+  int i;
+  if(currentWord.length() == 0) suggestion = "the";
+  else{
+    for(i = 0; suggestions[i].indexOf(currentWord) != 0 && i < 333332; i++); // search for word to suggest
+    if(i == 333332) suggestion = "----"; // if word was not found
+    else suggestion = split(suggestions[i], TAB)[0]; // if word was found
+  }
+  
+  
 }
 
   
@@ -604,7 +667,8 @@ void nextTrial()
   else currTrialNum++;                                                                // increment trial number
 
   lastTime = millis();                                                                // record the time of when this trial ended
-  currentTyped = "";                                                                  // clear what is currently typed preparing for next trial
+  currentTyped = "";  // clear what is currently typed preparing for next trial
+  currentWord = "";
   currentPhrase = phrases[currTrialNum];                                              // load the next phrase!
 }
 
