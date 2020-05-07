@@ -1,12 +1,14 @@
 // Bakeoff #3 - Escrita de Texto em Smartwatches
 // IPM 2019-20, Semestre 2
-// Entrega: exclusivamente no dia 22 de Maio, até às 23h59, via Twitter
+// Entrega: exclusivamente no dia 22 de Maio, até às 23h59, via Discord
 
 // Processing reference: https://processing.org/reference/
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
+import processing.sound.*;
+
 
 // Screen resolution vars;
 float PPI, PPCM;
@@ -48,7 +50,10 @@ String currentPhrase       = "";    // the current target phrase
 String currentTyped        = "";    // what the user has typed so far
 String currentWord         = "";    // word currently being typed
 String suggestion          = "the";
+String suggestion2         = "of";
 char currentLetter         = 'a';
+boolean started            = false;
+SoundFile keyPress;
 
 // Performance variables
 float startTime            = 0;     // time starts when the user clicks for the first time
@@ -95,13 +100,16 @@ void setup()
   opqr = loadImage("opqr.png");
   stuv = loadImage("stuv.png");
   wxyz = loadImage("wxyz.png");
- background = keyboard;
+  background = keyboard;
   
   //leftArrow = loadImage("left.png");
   //rightArrow = loadImage("right.png");
   
   //Load common words
   suggestions = loadStrings("count_1w.txt");
+  
+  // Load a soundfile from the /data folder
+  keyPress = new SoundFile(this, "keyPress.mp3");
   
   // Load phrases
   phrases = loadStrings("phrases.txt");                       // load the phrase set into memory
@@ -161,19 +169,19 @@ void draw()
   {
     textAlign(LEFT);
     fill(100);
-    text("Phrase " + (currTrialNum + 1) + " of " + NUM_REPEATS, width/2 - 4.0*PPCM, 50);   // write the trial count
-    text("Target:    " + currentPhrase, width/2 - 4.0*PPCM, 100);                           // draw the target string
+    text("Phrase " + (currTrialNum + 1) + " of " + NUM_REPEATS, width/2 - 4.0*PPCM, height/2 - 8.1*PPCM);   // write the trial count
+    text("Target:    " + currentPhrase, width/2 - 4.0*PPCM, height/2 - 7.1*PPCM);                           // draw the target string
     fill(0);
-    text("Entered:  " + currentTyped + "|", width/2 - 4.0*PPCM, 140);                      // draw what the user has entered thus far 
-    //text("Suggest:  " + suggestion, width/2 - 4.0*PPCM, 300);  
+    text("Entered:  " + currentTyped + "|", width/2 - 4.0*PPCM, height/2 - 6.1*PPCM);                      // draw what the user has entered thus far 
+     
     
     // Draw very basic ACCEPT button - do not change this!
     textAlign(CENTER);
     noStroke();
     fill(0, 250, 0);
-    rect(width/2 - 2*PPCM, 170, 4.0*PPCM, 2.0*PPCM);
+    rect(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM);
     fill(0);
-    text("ACCEPT >", width/2, 220);
+    text("ACCEPT >", width/2, height/2 - 4.1*PPCM);
     
     // Draw screen areas
     // simulates text box - not interactive
@@ -190,8 +198,13 @@ void draw()
     
 
     image(background, width/2, height/2 + 0.5*PPCM, 4.0*PPCM, 3.0*PPCM);
-    
-    
+    if(background == keyboard){
+      textAlign(CENTER);
+      textFont(createFont("Arial", 13));  // set the font to arial 14
+      text(suggestion, width/2 - .9*PPCM, height/2 - .5*PPCM);
+      text(suggestion2, width/2 + .9*PPCM, height/2 - .5*PPCM);
+      textFont(createFont("Arial", 24));  // set the font to arial 24
+    }
     
     //image(abc, width/2, height/2 + 0.5*PPCM, 4.0*PPCM, 3.0*PPCM);
     
@@ -226,7 +239,7 @@ boolean didMouseClick(float x, float y, float w, float h)
 void mousePressed()
 {
 
-  if (didMouseClick(width/2 - 2*PPCM, 170, 4.0*PPCM, 2.0*PPCM)) nextTrial();                         // Test click on 'accept' button - do not change this!
+  if (didMouseClick(width/2 - 2*PPCM, height/2 - 5.1*PPCM, 4.0*PPCM, 2.0*PPCM)) nextTrial();                         // Test click on 'accept' button - do not change this!
   else if(didMouseClick(width/2 - 2.0*PPCM, height/2 - 1.0*PPCM, 4.0*PPCM, 3.0*PPCM))  // Test click on 'keyboard' area - do not change this condition! 
   {
     // YOUR KEYBOARD IMPLEMENTATION NEEDS TO BE IN HERE! (inside the condition)
@@ -241,13 +254,16 @@ void mousePressed()
         fill(#3299FF);
         rect(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT);*/
         
-    
+    if (started == false){
+      started = true;
+      return;
+    }
     
     // Test click on 'abc'
     
     if (didMouseClick(width/2 - 1.8*PPCM, height/2 - 0.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = abc;
     }
     
@@ -256,6 +272,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
           currentLetter = 'a';
           currentTyped += currentLetter;
+          keyPress.play();
           background = keyboard;
       }
       
@@ -264,6 +281,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
         currentLetter = 'b';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -272,6 +290,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == abc) {
         currentLetter = 'c';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
            
@@ -279,7 +298,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = def;
     }
     
@@ -288,6 +307,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == def) {
         currentLetter = 'd';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -296,6 +316,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 - 0.940*PPCM, BUTTON_2_LENGHT, BUTTON_2_HEIGHT) && background == def) {
         currentLetter = 'e';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -304,6 +325,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 0.6*PPCM, height/2 - 0.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == def) {
         currentLetter = 'f';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -311,7 +333,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 + 0.6*PPCM, height/2 - 0.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = ghij;
     }
     
@@ -320,6 +342,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == ghij) {
         currentLetter = 'g';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -328,6 +351,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == ghij) {
         currentLetter = 'h';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -336,6 +360,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == ghij) {
         currentLetter = 'i';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -344,6 +369,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == ghij) {
         currentLetter = 'j';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       } 
       
@@ -351,7 +377,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 - 1.8*PPCM, height/2 +0.48*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = klmn;
     }
     
@@ -360,6 +386,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == klmn) {
         currentLetter = 'k';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -368,6 +395,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == klmn) {
         currentLetter = 'l';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -376,6 +404,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == klmn) {
         currentLetter = 'm';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -384,6 +413,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == klmn) {
         currentLetter = 'n';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -392,7 +422,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 +0.48*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = opqr;
     }
     
@@ -401,6 +431,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == opqr) {
         currentLetter = 'o';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -409,6 +440,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == opqr) {
         currentLetter = 'p';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -417,6 +449,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == opqr) {
         currentLetter = 'q';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -425,6 +458,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == opqr) {
         currentLetter = 'r';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -433,7 +467,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 + 0.775*PPCM, height/2 +0.11*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = stuv;
     }
     
@@ -442,6 +476,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == stuv) {
         currentLetter = 's';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -450,6 +485,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == stuv) {
         currentLetter = 't';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -458,6 +494,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == stuv) {
         currentLetter = 'u';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       } 
       
@@ -466,6 +503,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == stuv) {
         currentLetter = 'v';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       } 
       
@@ -473,7 +511,7 @@ void mousePressed()
       
       else if (didMouseClick(width/2 - 0.6*PPCM, height/2 + 1.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard)
     {
-      
+      keyPress.play();
       background = wxyz;
     }
     
@@ -482,6 +520,7 @@ void mousePressed()
     else if (didMouseClick(width/2 - 1.975*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'w';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
     }
       
@@ -490,6 +529,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 1.035*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'x';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       }  
       
@@ -498,6 +538,7 @@ void mousePressed()
       else if (didMouseClick(width/2 - 0.005*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'y';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       } 
       
@@ -506,6 +547,7 @@ void mousePressed()
       else if (didMouseClick(width/2 + 1*PPCM, height/2 - 0.940*PPCM, BUTTON_3_LENGHT, BUTTON_3_HEIGHT) && background == wxyz) {
         currentLetter = 'z';
         currentTyped += currentLetter;
+        keyPress.play();
         background = keyboard;
       } 
       
@@ -513,19 +555,38 @@ void mousePressed()
       
       else if (didMouseClick(width/2 + 0.6*PPCM, height/2 + 1.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && currentTyped.length() > 0 && background == keyboard){
         currentTyped = currentTyped.substring(0, currentTyped.length() - 1);
+        keyPress.play();
       } 
       
       // Test click on 'SPACE'
       
       else if (didMouseClick(width/2 - 1.8*PPCM, height/2 + 1.24*PPCM, BUTTON_1_LENGHT, BUTTON_1_HEIGHT) && background == keyboard) {
         currentTyped+=" ";
+        keyPress.play();
       }
       
       // Test click on 'RETURN'
       
       else if (didMouseClick(width/2 - 2.*PPCM, height/2 + 1.15*PPCM, RETURN_LENGHT, RETURN_HEIGHT)) {
         background = keyboard;
+        keyPress.play();
       }  
+      
+      // Test click on 1st suggestion
+      
+      else if (didMouseClick(width/2 - 1.1*(KEYBOARD_LENGHT/2), height/2 - 0.24*PPCM - BUTTON_1_HEIGHT, KEYBOARD_LENGHT/2, BUTTON_1_HEIGHT) && background == keyboard && suggestion != "----"){
+        currentTyped = currentTyped.substring(0, currentTyped.length() - split(currentTyped, " ")[split(currentTyped, " ").length -1].length()); 
+        currentTyped += suggestion + " ";
+        keyPress.play();
+      }
+      
+      // Test click on 2nd suggestion
+
+      else if (didMouseClick(width/2 - 0.1*(KEYBOARD_LENGHT/2), height/2 - 0.24*PPCM - BUTTON_1_HEIGHT, KEYBOARD_LENGHT/2, BUTTON_1_HEIGHT) && background == keyboard && suggestion2 != "----"){
+        currentTyped = currentTyped.substring(0, currentTyped.length() - split(currentTyped, " ")[split(currentTyped, " ").length -1].length()); 
+        currentTyped += suggestion2 + " ";
+        keyPress.play();
+      }
     /*
     // Test click on left arrow
     if (didMouseClick(width/2 - ARROW_SIZE, height/2, ARROW_SIZE, ARROW_SIZE))
@@ -551,12 +612,24 @@ void mousePressed()
   else System.out.println("debug: CLICK NOT ACCEPTED");
   
   //Predict next word
-  int i;
-  if(currentWord.length() == 0) suggestion = "the";
+  int i = 0;
+  if(currentTyped.length() == 0 || currentTyped.charAt(currentTyped.length() -1) == ' '){
+    suggestion = "the";
+    suggestion2 = "of";
+  }
   else{
+    currentWord = split(currentTyped, " ")[split(currentTyped, " ").length -1];
+
     for(i = 0; suggestions[i].indexOf(currentWord) != 0 && i < 333332; i++); // search for word to suggest
-    if(i == 333332) suggestion = "----"; // if word was not found
+    if(i == 333332) { // if word was not found
+      suggestion = suggestion2 = "----";
+      return; 
+      }
     else suggestion = split(suggestions[i], TAB)[0]; // if word was found
+    
+    for(i++; suggestions[i].indexOf(currentWord) != 0 && i < 333332; i++); // search for word to suggest again
+    if(i == 333332) suggestion2 = "----"; // if word was not found
+    else suggestion2 = split(suggestions[i], TAB)[0]; // if word was found
   }
   
   
